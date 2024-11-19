@@ -1,0 +1,10 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <repopulate_cart>
+            <general>
+                <action>replace</action>
+                <redirect_url>checkout/cart</redirect_url>
+            </general>
+        </repopulate_cart>
+    </default>
+</config>

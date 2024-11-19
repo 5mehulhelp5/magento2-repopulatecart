@@ -1,0 +1,17 @@
+{
+    "name": "blackbird/repopulatecart",
+    "description": "",
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "license": [
+
+    ],
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Blackbird\\RepopulateCart\\": ""
+        }
+    }
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="repopulate_cart" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Repopulate cart</label>
+            <tab>blackbird</tab>
+            <resource>Blackbird_RepopulateCart::config_system</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="action" type="select" translate="label" sortOrder="1"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Action</label>
+                    <comment>Replace cart or merge cart</comment>
+                    <source_model>Blackbird\RepopulateCart\Model\Config\Source\Action</source_model>
+                </field>
+                <field id="redirect_url" type="text" translate="label" sortOrder="1"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Redirect url path</label>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
