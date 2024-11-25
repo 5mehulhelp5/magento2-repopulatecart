@@ -1,11 +1,13 @@
 {
     "name": "blackbird/repopulatecart",
     "description": "",
+    "require": {
+        "magento/framework": ">=100.0.0",
+        "magento/module-catalog": ">=100.0.0"
+    },
     "type": "magento2-module",
-    "version": "1.0.0",
-    "license": [
-
-    ],
+    "version": "1.0.1",
+    "license": "MIT",
     "autoload": {
         "files": [
             "registration.php"
@@ -13,5 +15,12 @@
         "psr-4": {
             "Blackbird\\RepopulateCart\\": ""
         }
-    }
+    },
+    "authors": [
+        {
+            "name": "Blackbird Agency",
+            "email": "contact@bird.eu",
+            "homepage": "https://black.bird.eu"
+        }
+    ]
 }

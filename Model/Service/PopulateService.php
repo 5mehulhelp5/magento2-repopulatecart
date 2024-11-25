@@ -87,6 +87,9 @@ class PopulateService implements RepopulateServiceInterface
         }
 
         $this->cart->save();
+        $quote = $this->cart->getQuote();
+        $quote->setData('repopulated', true);
+        $this->cartRepository->save($quote);
         return $redirectUrl;
     }
 
@@ -165,6 +168,9 @@ class PopulateService implements RepopulateServiceInterface
         }
 
         $this->cart->save();
+        $quote = $this->cart->getQuote();
+        $quote->setData('repopulated', true);
+        $this->cartRepository->save($quote);
         return $redirectUrl;
     }
 }
