@@ -21,7 +21,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\QuoteRepository;
-use ZzMk\Preorder\Api\Data\PreorderInterface;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Checkout\Model\Cart as CustomerCart;
 
 class PopulateService implements RepopulateServiceInterface
@@ -31,7 +31,6 @@ class PopulateService implements RepopulateServiceInterface
         protected readonly RepopulateCartConfig $repopulateCartConfig,
         protected Session $session,
         protected FormKey $formKey,
-        protected Quote $quote,
         protected QuoteRepository $quoteRepository,
         protected ManagerInterface $messageManager,
         protected CustomerCart $cart,
@@ -47,20 +46,21 @@ class PopulateService implements RepopulateServiceInterface
     public function execute(array $products): string
     {
         $redirectUrl = $this->repopulateCartConfig->getUrlRedirect();
+        $quote = $this->cart->getQuote();
 
         if (empty($products)) {
             $this->messageManager->addErrorMessage(__('No cart could be retrieved from this link.'));
             return '/';
         }
 
-        if ($this->isDuplicatedCart($this->quote, $products)) {
+        if ($this->isDuplicatedCart($quote, $products)) {
             $this->messageManager->addWarningMessage(__('Items that you are trying to add are already in your cart.'));
             return $redirectUrl;
         }
 
-        if ($this->repopulateCartConfig->isReplaceAction() && $this->quote->getItemsCount()) {
-            foreach ($this->quote->getItems() as $item) {
-                $this->quote->removeItem($item->getId());
+        if ($this->repopulateCartConfig->isReplaceAction() && $this->cart->getItemsCount()) {
+            foreach ($this->cart->getItems() as $item) {
+                $this->cart->removeItem($item->getId());
             }
         }
 
@@ -134,10 +134,16 @@ class PopulateService implements RepopulateServiceInterface
         $redirectUrl = $this->repopulateCartConfig->getUrlRedirect();
         $product = $this->productRepository->get($sku);
 
+        if ($this->repopulateCartConfig->isReplaceAction() && $this->cart->getItemsCount()) {
+            foreach ($this->cart->getItems() as $item) {
+                $this->cart->removeItem($item->getId());
+            }
+        }
+
         //check if product as a parent product for configurable products
         if ($product->getTypeId() === 'simple') {
             $parentProducts = $this->configurable->getParentIdsByChild($product->getId());
-            if (count($parentProducts) === 1) {
+            if (count($parentProducts)) {
                 $parentProduct = $this->productRepository->getById($parentProducts[0]);
                 $attributeId = array_key_first($this->configurable->getUsedProductAttributes($parentProduct) ?? []);
                 $configurableOptions = $this->configurable->getConfigurableOptions($parentProduct);
@@ -150,20 +156,11 @@ class PopulateService implements RepopulateServiceInterface
                     }
                 }
 
-                $parameters = [
-                    'qty' => 1,
-                    'product_id' => $parentProduct->getId(),
-                    'form_key' => $this->formKey->getFormKey(),
-                    'selected_configurable_option' => 1,
-                    'sku' => $parentProduct->getSku(),
-                    'preorder' => $parentProduct->getData(PreorderInterface::PREORDER_PRODUCT_ATTRIBUTE_NAME),
-                ];
-
-                if($optionId){
-                    $parameters['super_attribute'] = [$attributeId  => $optionId];
-                }
-
-                $this->cart->addProduct($product,  new DataObject($parameters));
+                $parameters = $this->getParameters($parentProduct, $attributeId , $optionId);
+                $this->cart->addProduct($parentProduct, new DataObject($parameters));
+            } else {
+                $parameters = $this->getParameters($product);
+                $this->cart->addProduct($product, new DataObject($parameters));
             }
         }
 
@@ -172,5 +169,25 @@ class PopulateService implements RepopulateServiceInterface
         $quote->setData('repopulated', true);
         $this->cartRepository->save($quote);
         return $redirectUrl;
+    }
+
+    public function getParameters(ProductInterface $product, $attributeId = null, $optionId = null): array
+    {
+        $parameters = [
+            'product_id' => $product->getId(),
+            'form_key' => $this->formKey->getFormKey(),
+            'sku' => $product->getSku(),
+            'qty' => 1,
+            'product' => $product->getId(),
+        ];
+
+        if ($attributeId && $optionId) {
+            $parameters = array_merge([
+                'selected_configurable_option' => 1,
+                'super_attribute' => [$attributeId => $optionId]
+            ], $parameters);
+        }
+
+        return $parameters;
     }
 }
